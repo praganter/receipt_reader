@@ -49,7 +49,7 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>To take photo of receipt</string>
-	<key> NSPhotoLibraryUsageDescription </key>
+	<key>NSPhotoLibraryUsageDescription</key>
 	<string>To get photo of receipt from photos</string>
 </dict>
 </plist>
