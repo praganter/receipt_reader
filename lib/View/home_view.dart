@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:receipt_reader/Provider/home_provider.dart';
 import 'package:receipt_reader/base/base_view.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:tuple/tuple.dart';
 
 class HomeView extends BaseView<HomeProvider> {
   HomeView();
@@ -14,23 +18,27 @@ class HomeView extends BaseView<HomeProvider> {
 
   @override
   Widget customBuild(BuildContext context) {
-    return Selector<HomeProvider, int>(
-      selector: ((_, model) => model.currentStep),
-      builder: (context, currentStep, child) => Stepper(
+    return Selector<HomeProvider, Tuple2<int, bool?>>(
+      selector: ((_, model) => Tuple2(model.currentStep, model.isAcceptable)),
+      builder: (context, model, child) => Stepper(
         type: StepperType.horizontal,
         steps: getSteps(),
         onStepTapped: null,
-        onStepContinue: (currentStep + 1 == getSteps().length)
+        onStepContinue: (model.item1 + 1 == getSteps().length)
             ? null
-            : () {
-                provider.nextStep();
-              },
-        onStepCancel: currentStep == 0
+            : model.item2 != null
+                ? (model.item2!
+                    ? () {
+                        provider.nextStep();
+                      }
+                    : null)
+                : null,
+        onStepCancel: model.item1 == 0
             ? null
             : () {
                 provider.previousStep();
               },
-        currentStep: currentStep,
+        currentStep: model.item1,
         elevation: 15,
         controlsBuilder: (BuildContext context, ControlsDetails details) {
           return Row(
@@ -86,22 +94,27 @@ class HomeView extends BaseView<HomeProvider> {
           content: ListView(
             shrinkWrap: true,
             children: [
-              provider.image != null
-                  ? SizedBox(
-                      height: 400,
-                      width: 400,
-                      child: Image.file(provider.image!),
-                    )
-                  : const Icon(
-                      Icons.image,
-                      size: 200,
-                    ),
+              Selector<HomeProvider, File?>(
+                selector: ((_, model) => model.image),
+                builder: (context, image, child) => image != null
+                    ? SizedBox(
+                        height: 400,
+                        width: 400,
+                        child: Image.file(image),
+                      )
+                    : const Icon(
+                        Icons.image,
+                        size: 200,
+                      ),
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: ElevatedButton(
                   child: const Text('From Gallery'),
                   onPressed: () async {
+                    EasyLoading.show(maskType: EasyLoadingMaskType.black, status: "Processing...");
                     await provider.getImage(ImageSource.gallery);
+                    EasyLoading.dismiss();
                   },
                 ),
               ),
@@ -110,25 +123,57 @@ class HomeView extends BaseView<HomeProvider> {
                 child: ElevatedButton(
                   child: const Text('Take a picture'),
                   onPressed: () async {
+                    EasyLoading.show();
                     await provider.getImage(ImageSource.camera);
+                    EasyLoading.dismiss();
                   },
                 ),
               ),
-              // if (provider.image != null)
-              //   Padding(
-              //     padding: const EdgeInsets.all(16.0),
-              //     child: Text('${_path == null ? '' : 'Image path: $_path'}\n\n${widget.text ?? ''}'),
-              //   ),
+              Center(
+                child: Selector<HomeProvider, bool?>(
+                    selector: ((_, model) => model.isAcceptable),
+                    builder: (context, isAcceptable, child) {
+                      return isAcceptable != null
+                          ? (isAcceptable
+                              ? const Text("Geçerli fatura devam edin.")
+                              : const Text("Geçersiz fatura yeniden deneyin."))
+                          : const SizedBox.shrink();
+                    }),
+              ),
             ],
           ),
         ),
         Step(
-            isActive: (provider.currentStep == 1 ? true : false),
-            title: const Text("Editing"),
-            content: const Text("data"),
-            state: provider.currentStep == 1
-                ? StepState.editing
-                : (provider.currentStep > 1 ? StepState.complete : StepState.indexed)),
+          isActive: (provider.currentStep == 1 ? true : false),
+          title: const Text("Editing"),
+          state: provider.currentStep == 1
+              ? StepState.editing
+              : (provider.currentStep > 1 ? StepState.complete : StepState.indexed),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                Selector<HomeProvider, File?>(
+                  selector: ((_, model) => model.image),
+                  builder: (context, image, child) => image != null
+                      ? SizedBox(
+                          height: 400,
+                          width: 400,
+                          child: Image.file(image),
+                        )
+                      : const Icon(
+                          Icons.image,
+                          size: 200,
+                        ),
+                ),
+                Selector<HomeProvider, String>(
+                    selector: ((_, model) => model.scannedText),
+                    builder: (context, scannedText, child) {
+                      return Text(scannedText);
+                    }),
+              ],
+            ),
+          ),
+        ),
         Step(
             isActive: (provider.currentStep == 2 ? true : false),
             title: const Text("Creating"),

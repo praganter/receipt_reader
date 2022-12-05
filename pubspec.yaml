@@ -21,6 +21,10 @@ dependencies:
   provider: ^6.0.4
   document_scanner_flutter: ^0.2.7
   image_picker: ^0.8.6
+  flutter_easyloading:
+  path_provider: ^2.0.11
+  path: ^1.8.2
+  tuple: ^2.0.1
 
 dev_dependencies:
   flutter_test:
