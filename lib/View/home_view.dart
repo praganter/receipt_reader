@@ -22,9 +22,9 @@ class HomeView extends BaseView<HomeProvider> {
       selector: ((_, model) => Tuple2(model.currentStep, model.isAcceptable)),
       builder: (context, model, child) => Stepper(
         type: StepperType.horizontal,
-        steps: getSteps(),
+        steps: getSteps(context),
         onStepTapped: null,
-        onStepContinue: (model.item1 + 1 == getSteps().length)
+        onStepContinue: (model.item1 + 1 == getSteps(context).length)
             ? null
             : model.item2 != null
                 ? (model.item2!
@@ -84,7 +84,7 @@ class HomeView extends BaseView<HomeProvider> {
     );
   }
 
-  List<Step> getSteps() => [
+  List<Step> getSteps(BuildContext context) => [
         Step(
           title: const Text("Fatura"),
           isActive: (provider.currentStep == 0 ? true : false),
@@ -124,7 +124,7 @@ class HomeView extends BaseView<HomeProvider> {
                   child: const Text('Take a picture'),
                   onPressed: () async {
                     EasyLoading.show();
-                    await provider.getImage(ImageSource.camera);
+                    await provider.getPhoto(context);
                     EasyLoading.dismiss();
                   },
                 ),
@@ -177,9 +177,9 @@ class HomeView extends BaseView<HomeProvider> {
         Step(
             isActive: (provider.currentStep == 2 ? true : false),
             title: const Text("Creating"),
-            content: const Text("data"),
             state: provider.currentStep == 2
                 ? StepState.editing
-                : (provider.currentStep > 2 ? StepState.complete : StepState.indexed)),
+                : (provider.currentStep > 2 ? StepState.complete : StepState.indexed),
+            content: const Text("data")),
       ];
 }

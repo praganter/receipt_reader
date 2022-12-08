@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:document_scanner_flutter/configs/configs.dart';
+import 'package:document_scanner_flutter/document_scanner_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_image_labeling/google_mlkit_image_labeling.dart';
@@ -22,7 +24,7 @@ class HomeProvider extends ChangeNotifier {
   get isAcceptable => _isAcceptable;
   get scannedText => _scannedText;
 
-  Future getImage(ImageSource source) async {
+  getImage(ImageSource source) async {
     _image = null;
     _path = null;
     final pickedFile = await _imagePicker.pickImage(source: source);
@@ -34,7 +36,19 @@ class HomeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _imageLaberlerJob() async {
+  getPhoto(BuildContext context) async {
+    _image = null;
+    _path = null;
+    var img = await DocumentScannerFlutter.launch(context, source: ScannerFileSource.CAMERA);
+    if (img != null) {
+      _image = img;
+      _path = _image!.path;
+      await _imageLaberlerJob();
+    }
+    notifyListeners();
+  }
+
+  _imageLaberlerJob() async {
     const path = "assets/ml/object_labeler.tflite";
     final modelPath = await _getModel(path);
     final options = LocalLabelerOptions(modelPath: modelPath);
@@ -69,9 +83,11 @@ class HomeProvider extends ChangeNotifier {
     for (var element in labels) {
       if (element.label.toLowerCase().contains("receipt") && element.confidence >= 0.65) {
         bBool = true;
+        print("Fiş olma yüzdesi = ${element.confidence}");
         break;
       }
     }
+    // bBool = true;
     bBool ? _isAcceptable = true : _isAcceptable = false;
     notifyListeners();
   }
@@ -95,9 +111,14 @@ class HomeProvider extends ChangeNotifier {
         double currentBottom = totalLines[j].boundingBox.top;
         if (((baseBottom + baseHeight * 0.8 >= currentBottom) && (baseBottom - baseHeight * 0.8 <= currentBottom)) ||
             (baseBottom == currentBottom)) {
-          tempRow += " ${totalLines[j].text} ";
+          if (totalLines[i].boundingBox.left < totalLines[j].boundingBox.left) {
+            tempRow += " + ${totalLines[j].text} ";
+          } else {
+            var tmp = "${totalLines[j].text} + $tempRow";
+            tempRow = tmp;
+          }
           totalLines.removeAt(j);
-          i--;
+          j--;
         }
         if (j == (totalLines.length - 1)) {
           seperatedRows[i] = tempRow.trim();

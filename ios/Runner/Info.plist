@@ -50,6 +50,8 @@
 	<key>NSCameraUsageDescription</key>
 	<string>To take photo of receipt</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>To get photo of receipt from photos</string>
+	<string>To get photo of receipt</string>
+	<key>io.flutter.embedded_views_preview</key>
+	<true/>
 </dict>
 </plist>
