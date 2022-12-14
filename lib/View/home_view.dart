@@ -131,14 +131,15 @@ class HomeView extends BaseView<HomeProvider> {
               ),
               Center(
                 child: Selector<HomeProvider, bool?>(
-                    selector: ((_, model) => model.isAcceptable),
-                    builder: (context, isAcceptable, child) {
-                      return isAcceptable != null
-                          ? (isAcceptable
-                              ? const Text("Geçerli fatura devam edin.")
-                              : const Text("Geçersiz fatura yeniden deneyin."))
-                          : const SizedBox.shrink();
-                    }),
+                  selector: ((_, model) => model.isAcceptable),
+                  builder: (context, isAcceptable, child) {
+                    return isAcceptable != null
+                        ? (isAcceptable
+                            ? const Text("Geçerli fatura devam edin.")
+                            : const Text("Geçersiz fatura yeniden deneyin."))
+                        : const SizedBox.shrink();
+                  },
+                ),
               ),
             ],
           ),
@@ -166,20 +167,22 @@ class HomeView extends BaseView<HomeProvider> {
                         ),
                 ),
                 Selector<HomeProvider, String>(
-                    selector: ((_, model) => model.scannedText),
-                    builder: (context, scannedText, child) {
-                      return Text(scannedText);
-                    }),
+                  selector: ((_, model) => model.scannedText),
+                  builder: (context, scannedText, child) {
+                    return Text(scannedText);
+                  },
+                ),
               ],
             ),
           ),
         ),
         Step(
-            isActive: (provider.currentStep == 2 ? true : false),
-            title: const Text("Creating"),
-            state: provider.currentStep == 2
-                ? StepState.editing
-                : (provider.currentStep > 2 ? StepState.complete : StepState.indexed),
-            content: const Text("data")),
+          isActive: (provider.currentStep == 2 ? true : false),
+          title: const Text("Creating"),
+          state: provider.currentStep == 2
+              ? StepState.editing
+              : (provider.currentStep > 2 ? StepState.complete : StepState.indexed),
+          content: const Text("data"),
+        ),
       ];
 }
